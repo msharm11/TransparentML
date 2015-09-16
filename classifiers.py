@@ -19,14 +19,14 @@ class TransparentLogisticRegression(TransparentClassifier, LogisticRegression):
     '''
 
     def predict_evidences(self, X):
-        coef_diags = diags(self.coef_[0],0)
-        dm = X*coef_diags
+        coef_diags = diags(self.coef_[0], 0)
+        dm = X * coef_diags
         if issparse(dm):
-            pos_evi = dm.multiply(dm>0).sum(1).A1
-            neg_evi = dm.multiply(dm<0).sum(1).A1
+            pos_evi = dm.multiply(dm > 0).sum(1).A1
+            neg_evi = dm.multiply(dm < 0).sum(1).A1
         else:
-            pos_evi = np.multiply(dm>0).sum(1).A1
-            neg_evi = np.multiply(dm<0).sum(1).A1        
+            pos_evi = np.multiply(dm > 0).sum(1).A1
+            neg_evi = np.multiply(dm < 0).sum(1).A1        
         return neg_evi, pos_evi
         
         
