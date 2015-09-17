@@ -9,6 +9,7 @@ import glob
 from sklearn.feature_extraction.text import CountVectorizer
 from time import time
 import re
+from numpy import linspace
 
 def load_imdb(path, shuffle=True, random_state=42, vectorizer=CountVectorizer(min_df=5, max_df=1.0, binary=True)):
     
@@ -124,4 +125,38 @@ class ColoredDoc(object):
                     html_rep = html_rep + "<font color=gray> " + token + " </font>"
             else:
                 html_rep = html_rep + "<font color=gray> " + token + " </font>"
+        return html_rep
+
+class ColoredWeightedDoc(object):
+    def __init__(self, doc, feature_names, coefs):
+        self.doc = doc
+        self.feature_names = feature_names
+        self.coefs = coefs
+        self.token_pattern = re.compile(r"(?u)\b\w\w+\b")
+        self.abs_ranges = np.linspace(0, max([abs(coefs.min()), abs(coefs.max())]), 8)
+    def _repr_html_(self):
+        html_rep = ""
+        tokens = self.doc.split(" ")        
+        for token in tokens:
+            vocab_tokens = self.token_pattern.findall(token.lower())
+            if len(vocab_tokens) > 0:
+                vocab_token = vocab_tokens[0]
+                try:
+                    vocab_index = self.feature_names.index(vocab_token)
+                    if self.coefs[vocab_index] > 0:
+                        for i in range(1, 7):
+                            if self.coefs[vocab_index] < self.abs_ranges[i]:
+                                break
+                        html_rep = html_rep + "<font size = " + str(i) +", color=blue> " + token + " </font>"
+                    elif self.coefs[vocab_index] < 0:
+                        for i in range(1, 7):
+                            if self.coefs[vocab_index] > -self.abs_ranges[i]:
+                                break
+                        html_rep = html_rep + "<font size = " + str(i) +", color=red> " + token + " </font>"
+                    else:
+                        html_rep = html_rep + "<font size = 1, color=gray> " + token + " </font>"
+                except:
+                    html_rep = html_rep + "<font size = 1, color=gray> " + token + " </font>"
+            else:
+                html_rep = html_rep + "<font size = 1, color=gray> " + token + " </font>"
         return html_rep
