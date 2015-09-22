@@ -9,7 +9,6 @@ import glob
 from sklearn.feature_extraction.text import CountVectorizer
 from time import time
 import re
-from numpy import linspace
 
 def load_imdb(path, shuffle=True, random_state=42, vectorizer=CountVectorizer(min_df=5, max_df=1.0, binary=True)):
     
@@ -147,12 +146,12 @@ class ColoredWeightedDoc(object):
                         for i in range(1, 7):
                             if self.coefs[vocab_index] < self.abs_ranges[i]:
                                 break
-                        html_rep = html_rep + "<font size = " + str(i) +", color=blue> " + token + " </font>"
+                        html_rep = html_rep + "<font size = " + str(i) + ", color=blue> " + token + " </font>"
                     elif self.coefs[vocab_index] < 0:
                         for i in range(1, 7):
                             if self.coefs[vocab_index] > -self.abs_ranges[i]:
                                 break
-                        html_rep = html_rep + "<font size = " + str(i) +", color=red> " + token + " </font>"
+                        html_rep = html_rep + "<font size = " + str(i) + ", color=red> " + token + " </font>"
                     else:
                         html_rep = html_rep + "<font size = 1, color=gray> " + token + " </font>"
                 except:
@@ -160,3 +159,46 @@ class ColoredWeightedDoc(object):
             else:
                 html_rep = html_rep + "<font size = 1, color=gray> " + token + " </font>"
         return html_rep
+    
+class TopInstances():
+    def __init__(self, neg_evis, pos_evis, intercept=0):
+        self.neg_evis = neg_evis
+        self.pos_evis = pos_evis
+        self.intercept = intercept
+        self.total_evis = self.neg_evis + self.pos_evis
+        self.total_evis += self.intercept
+        self.total_abs_evis = abs(self.neg_evis) + abs(self.pos_evis)
+        self.total_abs_evis += abs(self.intercept)
+        
+    def most_negatives(self, k=1):
+        evi_sorted = np.argsort(self.total_evis)
+        return evi_sorted[:k]
+    
+    def most_positives(self, k=1):
+        evi_sorted = np.argsort(self.total_evis)
+        return evi_sorted[-k:][::-1]
+    
+    def least_opinionateds(self, k=1):
+        abs_evi_sorted = np.argsort(self.total_abs_evis)
+        return abs_evi_sorted[:k]
+    
+    def most_opinionateds(self, k=1):
+        abs_evi_sorted = np.argsort(self.total_abs_evis)
+        return abs_evi_sorted[-k:][::-1]
+    
+    def most_uncertains(self, k=1):
+        abs_total_evis = abs(self.total_evis)
+        abs_total_evi_sorted = np.argsort(abs_total_evis)
+        return abs_total_evi_sorted[:k]
+    
+    def most_conflicteds(self, k=1):
+        conflicts = np.min([abs(self.neg_evis), abs(self.pos_evis)], axis=0)
+        conflict_sorted = np.argsort(conflicts)
+        return conflict_sorted[-k:][::-1]
+    
+    def least_conflicteds(self, k=1):
+        conflicts = np.min([abs(self.neg_evis), abs(self.pos_evis)], axis=0)
+        conflict_sorted = np.argsort(conflicts)
+        return conflict_sorted[:k]
+    
+    
